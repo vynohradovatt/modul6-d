@@ -3,19 +3,20 @@ package org.example;
 import org.example.dao.ClientService;
 import org.example.entity.Client;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class TestDB {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         DatabaseMigrationService databaseInitService = new DatabaseMigrationService();
         databaseInitService.flywayMigration();
 
         Client client1 = new Client();
-        client1.setId(12);
+        client1.setId(20);
         client1.setName("TestClient1");
 
         Client client2 = new Client();
-        client2.setId(13);
+        client2.setId(45);
         client2.setName("TestClient2");
 
         ClientService daoService = new ClientService();
@@ -35,5 +36,8 @@ public class TestDB {
             Client client = clientList.get(i);
             System.out.println(client.toString());
         }
+
+        daoService.closeConnection();
     }
+
 }

@@ -6,15 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 public class ClientService {
 
-    public Connection connection;
+    public Connection connection = DriverManager.getConnection(new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL));
     public PreparedStatement selectMaxIdST;
     public PreparedStatement getAllSt;
 
-    public ClientService(){
-        String connectionUrl = new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL);
+    public ClientService() throws SQLException {
 
         try {
-            Connection connection = DriverManager.getConnection(connectionUrl);
 
             selectMaxIdST = connection.prepareStatement(
                     "SELECT max(id) AS max_id FROM client"
@@ -24,18 +22,13 @@ public class ClientService {
             );
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+          throw new SQLException();
         }
     }
 
-    public long createClient(Client client)  {
-
+    public long createClient(Client client) throws SQLException {
         long id;
-        try {
-            connection = DriverManager.getConnection(new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+
         try(PreparedStatement createClientSt = connection.prepareStatement(
                 "INSERT INTO client VALUES (?, ?)"
         )) {
@@ -48,17 +41,14 @@ public class ClientService {
                 id = resultSet.getLong("max_id");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            throw new SQLException();
+            }
+
         return id;
+
     }
-    public String getById(long id) {
+    public String getById(long id) throws SQLException {
         String name;
-        try {
-            connection = DriverManager.getConnection(new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
 
         try(PreparedStatement getByIdSt = connection.prepareStatement(
                 "SELECT name FROM client WHERE id = ?"
@@ -68,17 +58,11 @@ public class ClientService {
             resultSet.next();
             name = resultSet.getString(1);
         } catch (Exception e){
-            throw new RuntimeException(e);
+            throw new SQLException();
         }
-        return name;
+         return name;
     }
-    public void setName(long id, String name){
-
-        try {
-            connection = DriverManager.getConnection(new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public void setName(long id, String name) throws SQLException {
 
         try(PreparedStatement setNameSt = connection.prepareStatement(
                 "UPDATE client SET name = ? WHERE id = ?"
@@ -88,24 +72,20 @@ public class ClientService {
             setNameSt.setLong(2, id);
             setNameSt.executeUpdate();
         } catch (Exception e){
-            throw new RuntimeException(e);
+            throw new SQLException();
         }
     }
-    public void deleteById(long id) {
-        try {
-            connection = DriverManager.getConnection(new Prefs().getString(Prefs.DB_JDBC_CONNECTION_URL));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public void deleteById(long id) throws SQLException {
+
         try(PreparedStatement deletedSt = connection.prepareStatement("DELETE FROM client WHERE id = ?"
         )) {
             deletedSt.setLong(1, id);
             deletedSt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException();
         }
     }
-    public List<Client> listAll(){
+    public List<Client> listAll() throws SQLException {
         List<Client> allClients = new ArrayList<>();
 
         try (ResultSet rs = getAllSt.executeQuery()) {
@@ -120,8 +100,17 @@ public class ClientService {
                 allClients.add(client);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException();
         }
         return allClients;
+    }
+    public void closeConnection() throws SQLException {
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            throw new SQLException();
+        }
     }
 }

@@ -1,0 +1,4 @@
+CREATE TABLE client (
+    id IDENTITY PRIMARY KEY,
+    name VARCHAR NOT NULL CHECK (LENGTH(name) > 2 AND LENGTH(name) <=1000)
+);
